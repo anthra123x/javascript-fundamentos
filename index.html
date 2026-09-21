@@ -1,12 +1,253 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Neon JS — Panel de Estudio</title>
+  <meta name="description" content="Curso práctico de fundamentos de JavaScript: clona, estudia y practica con tests automáticos." />
+  <style>
+    :root {
+      --bg: #0b0f1a;
+      --card: #121828;
+      --card-hover: #182036;
+      --border: #232b45;
+      --text: #e6e9f5;
+      --muted: #8a93b2;
+      --accent: #22d3ee;
+      --accent2: #a78bfa;
+      --green: #34d399;
+      --yellow: #fbbf24;
+      --red: #f87171;
+      --radius: 14px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      line-height: 1.6;
+      padding: 2rem 1.25rem 4rem;
+      max-width: 1080px;
+      margin: 0 auto;
+    }
+    header { text-align: center; padding: 1.5rem 0 2.5rem; }
+    .glow {
+      font-size: clamp(2rem, 6vw, 3.2rem);
+      font-weight: 800;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      letter-spacing: -0.03em;
+    }
+    .subtitle { color: var(--muted); max-width: 560px; margin: 0.75rem auto 0; }
+    .progress-shell {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      margin: 1.5rem auto 0;
+      max-width: 640px;
+    }
+    .progress-label { display: flex; justify-content: space-between; font-size: 0.9rem; color: var(--muted); margin-bottom: 0.5rem; }
+    .progress-track { height: 10px; background: #1c2438; border-radius: 999px; overflow: hidden; }
+    .progress-bar {
+      height: 100%; width: 0%;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      transition: width 0.4s ease;
+    }
+    section { margin-top: 2.5rem; }
+    h2 {
+      font-size: 1.15rem;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.1rem 1.25rem;
+      transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+    }
+    .card:hover { transform: translateY(-3px); border-color: var(--accent); background: var(--card-hover); }
+    .card.done { border-color: var(--green); }
+    .card-header { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
+    .card-title { font-weight: 700; font-size: 1.02rem; }
+    .badge { font-size: 0.72rem; padding: 0.15rem 0.6rem; border-radius: 999px; border: 1px solid var(--border); color: var(--muted); white-space: nowrap; }
+    .card p { color: var(--muted); font-size: 0.9rem; margin-top: 0.45rem; }
+    .card-actions { display: flex; gap: 0.5rem; margin-top: 0.85rem; flex-wrap: wrap; }
+    a.btn {
+      font-size: 0.82rem;
+      text-decoration: none;
+      padding: 0.35rem 0.75rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      color: var(--text);
+      background: transparent;
+      transition: all 0.15s ease;
+    }
+    a.btn:hover { border-color: var(--accent); color: var(--accent); }
+    .checks { display: flex; gap: 1rem; flex-wrap: wrap; }
+    .check { font-size: 0.9rem; }
+    .check input { accent-color: var(--green); margin-right: 0.25rem; }
+    footer { margin-top: 3rem; text-align: center; color: var(--muted); font-size: 0.85rem; }
+    .reset-btn {
+      background: none; border: 1px solid var(--border); color: var(--muted);
+      font-size: 0.75rem; padding: 0.3rem 0.7rem; border-radius: 8px; cursor: pointer;
+    }
+    .reset-btn:hover { color: var(--red); border-color: var(--red); }
+    /* Foco visible para navegación por teclado (links y el botón de reinicio). */
+    a.btn:focus-visible,
+    .reset-btn:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+    /* Respeta el sistema si la persona prefiere menos movimiento. */
+    @media (prefers-reduced-motion: reduce) {
+      .progress-bar, .card { transition: none !important; }
+      .card:hover { transform: none; }
+    }
+  </style>
 </head>
 <body>
-    hola mundo 
-    <script src="operadores/comparacion.js"></script>
+  <header>
+    <div class="glow">⚡ Neon JS</div>
+    <p class="subtitle">
+      Curso práctico de fundamentos de JavaScript. Clona el repo, estudiá cada módulo,
+      resolvé los ejercicios y verificá con <code>npm test</code>. Todo sin dependencias.
+    </p>
+
+    <div class="progress-shell">
+      <div class="progress-label">
+        <span>Tu progreso</span>
+        <span id="progress-count">0 / 9 módulos</span>
+      </div>
+      <div class="progress-track"><div class="progress-bar" id="progress-bar"></div></div>
+    </div>
+  </header>
+
+  <main>
+    <section id="modulos"></section>
+
+    <section>
+      <h2>📚 Material de apoyo</h2>
+      <div class="grid">
+        <div class="card">
+          <div class="card-header"><span class="card-title">🧠 Guía de estudio</span></div>
+          <p>La metodología del curso: PRIMM, recuperación activa, repetición espaciada y el calendario de 5 semanas.</p>
+          <div class="card-actions"><a class="btn" href="docs/GUIA-DE-ESTUDIO.md">Abrir</a></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">🗺 Syllabus</span></div>
+          <p>Mapa completo del curso: objetivos por módulo y plan semanal recomendado.</p>
+          <div class="card-actions"><a class="btn" href="docs/SYLLABUS.md">Abrir</a></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">⚡ Cheatsheet</span></div>
+          <p>Referencia rápida de sintaxis para consultar cuando estés atascado.</p>
+          <div class="card-actions"><a class="btn" href="docs/CHEATSHEET.md">Abrir</a></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">🚨 Errores</span></div>
+          <p>Guía para leer errores de Node en inglés, tipos de error y protocolo de depuración.</p>
+          <div class="card-actions"><a class="btn" href="docs/ERRORES.md">Abrir</a></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Neon JS — Fundamentos de JavaScript · MIT License</p>
+    <p style="margin-top: 0.5rem;">
+      <button class="reset-btn" id="reset-btn" title="Borra tu progreso guardado en este navegador">Reiniciar progreso</button>
+    </p>
+  </footer>
+
+  <script>
+    // ── Datos de los módulos ──
+    const MODULOS = [
+      { n: '00', nombre: 'Cómo empezar', desc: 'Terminal, Node.js y tu primer script.', leccion: '00-como-empezar/LECCION.md', ejemplo: '00-como-empezar/ejemplos/01-hola-mundo.js' },
+      { n: '01', nombre: 'Variables y tipos de datos', desc: 'let/const, primitivos, typeof, conversión de tipos.', leccion: '01-variables-y-tipos/LECCION.md', tests: '01-variables-y-tipos/tests/', proyecto: '01-variables-y-tipos/PROYECTO.md' },
+      { n: '02', nombre: 'Operadores', desc: 'Aritméticos, comparación, lógicos, falsy, ternario.', leccion: '02-operadores/LECCION.md', tests: '02-operadores/tests/', proyecto: '02-operadores/PROYECTO.md' },
+      { n: '03', nombre: 'Control de flujo', desc: 'if/else, switch, while, for, break/continue.', leccion: '03-control-de-flujo/LECCION.md', tests: '03-control-de-flujo/tests/', proyecto: '03-control-de-flujo/PROYECTO.md' },
+      { n: '04', nombre: 'Funciones', desc: 'Declaraciones, arrows, parámetros, scope y callbacks.', leccion: '04-funciones/LECCION.md', tests: '04-funciones/tests/', proyecto: '04-funciones/PROYECTO.md' },
+      { n: '05', nombre: 'Arrays', desc: 'Creación, mutación, iteración, map/filter/reduce, spread.', leccion: '05-arrays/LECCION.md', tests: '05-arrays/tests/', proyecto: '05-arrays/PROYECTO.md' },
+      { n: '06', nombre: 'Objetos', desc: 'Objetos, métodos, destructuring y JSON.', leccion: '06-objetos/LECCION.md', tests: '06-objetos/tests/', proyecto: '06-objetos/PROYECTO.md' },
+      { n: '07', nombre: 'Errores y depuración', desc: 'Leer stack traces, try/catch/throw y depurar.', leccion: '07-errores-y-depuracion/LECCION.md', tests: '07-errores-y-depuracion/tests/', proyecto: '07-errores-y-depuracion/PROYECTO.md' },
+      { n: '08', nombre: 'Proyectos', desc: 'Proyectos integradores de consola y web con todo lo aprendido.', leccion: '08-proyectos/LECCION.md', ejemplo: '08-proyectos/web/index.html', tests: '08-proyectos/tests/', proyecto: '08-proyectos/PROYECTO.md' },
+    ];
+
+    const KEY = 'neonjs-progreso';
+    const done = { ...(JSON.parse(localStorage.getItem(KEY) || '{}')) };
+
+    function save() { localStorage.setItem(KEY, JSON.stringify(done)); updateProgress(); }
+
+    function updateProgress() {
+      const total = MODULOS.length;
+      const completados = MODULOS.filter((m) => done[m.n]).length;
+      document.getElementById('progress-count').textContent = `${completados} / ${total} módulos`;
+      document.getElementById('progress-bar').style.width = `${(completados / total) * 100}%`;
+    }
+
+    function render() {
+      const section = document.getElementById('modulos');
+      section.innerHTML = '<h2>🗂 Módulos del curso</h2><div class="grid">';
+      const grid = section.querySelector('.grid');
+
+      MODULOS.forEach((m) => {
+        const card = document.createElement('article');
+        card.className = 'card' + (done[m.n] ? ' done' : '');
+        const links = [
+          { href: m.leccion, text: '📖 Lección' },
+          m.ejemplo ? { href: m.ejemplo, text: '▶️ Ejemplo' } : null,
+          m.tests ? { href: m.tests, text: '🧪 Tests' } : null,
+          m.proyecto ? { href: m.proyecto, text: '🛠 Proyecto' } : null,
+        ].filter(Boolean).map((l) => `<a class="btn" href="${l.href}">${l.text}</a>`).join('');
+
+        card.innerHTML = `
+          <div class="card-header">
+            <span class="card-title">${m.n} · ${m.nombre}</span>
+            <span class="badge">${done[m.n] ? '✅ hecho' : 'pendiente'}</span>
+          </div>
+          <p>${m.desc}</p>
+          <div class="card-actions">${links}</div>
+          <label class="check" style="margin-top:0.7rem;display:inline-flex;align-items:center;gap:0.4rem;">
+            <input type="checkbox" data-module="${m.n}" ${done[m.n] ? 'checked' : ''} /> Marcar módulo completado
+          </label>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    document.addEventListener('change', (e) => {
+      const el = e.target;
+      if (el.matches('[data-module]')) {
+        const n = el.dataset.module;
+        done[n] = el.checked;
+        const card = el.closest('.card');
+        card.classList.toggle('done', el.checked);
+        const badge = card.querySelector('.badge');
+        badge.textContent = el.checked ? '✅ hecho' : 'pendiente';
+        save();
+      }
+    });
+
+    document.getElementById('reset-btn').addEventListener('click', () => {
+      if (confirm('¿Reiniciar tu progreso en este navegador?')) {
+        Object.keys(done).forEach((k) => delete done[k]);
+        save();
+        render();
+      }
+    });
+
+    render();
+    updateProgress();
+  </script>
 </body>
 </html>

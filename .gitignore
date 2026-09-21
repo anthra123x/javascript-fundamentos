@@ -1,0 +1,15 @@
+# Dependencias (no deberías necesitarlas: cero dependencias)
+node_modules/
+
+# Registros y basura
+*.log
+npm-debug.log*
+
+# Editor
+.vscode/
+.idea/
+.DS_Store
+
+# Archivos temporales del estudiante
+*~
+*.swp

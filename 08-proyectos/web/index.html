@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mini panel de tareas</title>
+  <meta name="description" content="Proyecto web del módulo 08: un panel de tareas con JavaScript puro, sin dependencias, que funciona abriendo el archivo desde el navegador." />
+  <style>
+    /* Misma paleta oscura que el dashboard del curso (index.html de la raíz). */
+    :root {
+      --bg: #0b0f1a;
+      --card: #121828;
+      --card-hover: #182036;
+      --border: #232b45;
+      --text: #e6e9f5;
+      --muted: #8a93b2;
+      --accent: #22d3ee;
+      --accent2: #a78bfa;
+      --green: #34d399;
+      --red: #f87171;
+      --radius: 14px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      line-height: 1.6;
+      padding: 2rem 1.25rem 4rem;
+      max-width: 640px;
+      margin: 0 auto;
+    }
+    header { text-align: center; padding: 1rem 0 1.75rem; }
+    h1 {
+      font-size: clamp(1.6rem, 5vw, 2.2rem);
+      font-weight: 800;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      letter-spacing: -0.02em;
+    }
+    .subtitulo { color: var(--muted); font-size: 0.95rem; margin-top: 0.5rem; }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+    }
+
+    form { display: flex; gap: 0.6rem; }
+    label { display: block; margin-bottom: 0.4rem; color: var(--muted); font-size: 0.85rem; }
+    .campo { flex: 1; }
+    input[type="text"] {
+      width: 100%;
+      padding: 0.65rem 0.85rem;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 1rem;
+    }
+    input[type="text"]::placeholder { color: var(--muted); }
+    button {
+      font-size: 0.95rem;
+      padding: 0.65rem 1.1rem;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+    }
+    button.primario { border-color: var(--accent); color: var(--accent); }
+    button.primario:hover { background: rgba(34, 211, 238, 0.12); }
+    button.secundario { border-color: var(--border); }
+    button.secundario:hover { color: var(--red); border-color: var(--red); }
+
+    /* Foco visible para navegación por teclado. */
+    input:focus-visible,
+    button:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .mensaje { min-height: 1.4em; margin-top: 0.85rem; font-size: 0.9rem; color: var(--muted); }
+
+    ul { list-style: none; margin-top: 0.75rem; display: flex; flex-direction: column; gap: 0.5rem; }
+    li {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.6rem 0.85rem;
+    }
+    li input[type="checkbox"] { accent-color: var(--green); width: 1.15rem; height: 1.15rem; cursor: pointer; flex-shrink: 0; }
+    li .texto { flex: 1; color: var(--text); }
+    li.completada .texto { text-decoration: line-through; color: var(--muted); }
+    li .borrar { border: none; background: none; color: var(--muted); font-size: 1rem; padding: 0.25rem 0.5rem; cursor: pointer; }
+    li .borrar:hover { color: var(--red); }
+
+    .vacio { text-align: center; color: var(--muted); padding: 1.5rem 0; font-size: 0.95rem; }
+    .resumen { margin-top: 1rem; font-size: 0.9rem; color: var(--muted); display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+
+    footer { margin-top: 2rem; text-align: center; color: var(--muted); font-size: 0.8rem; }
+
+    /* Respeto por quienes prefieren menos movimiento. */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>📋 Mini panel de tareas</h1>
+    <p class="subtitulo">Proyecto web del módulo 08 · JavaScript puro · tus tareas se guardan en este navegador.</p>
+  </header>
+
+  <main>
+    <section class="panel" aria-labelledby="titulo-nueva">
+      <h2 id="titulo-nueva" class="subtitulo">Nueva tarea</h2>
+
+      <!-- El formulario permite agregar con Enter o con el botón. -->
+      <form id="formulario" novalidate>
+        <div class="campo">
+          <label for="entrada">Descripción de la tarea</label>
+          <input type="text" id="entrada" placeholder="Por ejemplo: estudiar arrays" autocomplete="off" required />
+        </div>
+        <button type="submit" class="primario">Agregar</button>
+      </form>
+
+      <!-- Zona de anuncios accesibles: lector de pantalla avisa de cada acción. -->
+      <p class="mensaje" id="mensaje" aria-live="polite"></p>
+    </section>
+
+    <section class="panel" aria-labelledby="titulo-lista" style="margin-top: 1rem;">
+      <h2 id="titulo-lista" class="subtitulo">Tus tareas</h2>
+
+      <!-- Estado vacío: se muestra solo cuando no hay tareas. -->
+      <p class="vacio" id="vacio">📭 Todavía no agregaste tareas. Escribí la primera arriba.</p>
+
+      <ul id="lista-tareas" aria-label="Lista de tareas"></ul>
+
+      <div class="resumen">
+        <span id="resumen-texto">0 pendientes · 0 hechas</span>
+        <button type="button" class="secundario" id="vaciar">Vaciar lista</button>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Neon JS · Módulo 08 — Proyectos · ABIERTO desde <code>file://</code>, sin servidor ni internet.</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
